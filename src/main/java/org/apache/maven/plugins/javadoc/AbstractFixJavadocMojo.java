@@ -3302,20 +3302,19 @@ public abstract class AbstractFixJavadocMojo
 
         String originalJavadoc = extractOriginalJavadocContent( javaClassContent, entity );
 
-        List<String> params = docletTag.getParameters();
-        String paramValue = params.get( 0 );
-
         StringBuilder sb = new StringBuilder();
         BufferedReader lr = new BufferedReader( new StringReader( originalJavadoc ) );
         String line;
         boolean found = false;
+        
+        // matching first line of doclettag
+        Pattern p = Pattern.compile( "(\\s*\\*\\s?@" + docletTag.getName() + ")\\s+"
+            + "(\\Q" + docletTag.getValue().split( "\r\n|\r|\n" )[0] + "\\E)" );
+        
         while ( ( line = lr.readLine() ) != null )
         {
-            String l = StringUtils.removeDuplicateWhitespace( line.trim() );
-            if ( l.startsWith( "* @" + docletTag.getName() + " " + paramValue + " " )
-                || l.startsWith( "*@" + docletTag.getName() + " " + paramValue + " " )
-                || l.equals( "* @" + docletTag.getName() + " " + paramValue )
-                || l.equals( "*@" + docletTag.getName() + " " + paramValue ) )
+            Matcher m = p.matcher( line );
+            if ( m.matches() )
             {
                 if ( fixTag( LINK_TAG ) )
                 {
@@ -3326,7 +3325,7 @@ public abstract class AbstractFixJavadocMojo
             }
             else
             {
-                if ( l.startsWith( "* @" ) || l.startsWith( "*@" ) )
+                if ( line.trim().startsWith( "* @" ) || line.trim().startsWith( "*@" ) )
                 {
                     found = false;
                 }
